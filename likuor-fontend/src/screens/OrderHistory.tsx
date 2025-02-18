@@ -101,13 +101,11 @@ const OrderHistory: React.FC = (): JSX.Element => {
             setRefresh((prev) => !prev);
         }, [])
     );
-
     const {
         data: ordersData,
         error: ordersError,
         isLoading: ordersLoading,
     } = useGetOrdersQuery({ "username": userStore.getEmail() });
-
     // @ts-ignore
     const history = ordersData instanceof Array ? ordersData : [];
     const [activeSections, setActiveSections] = useState<number[]>([]);
