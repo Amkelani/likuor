@@ -2,14 +2,14 @@ export const ENDPOINTS = {
   get: {
     tags: 'api/tags',
     users: 'api/users',
-    carousel: 'api/slides',
-    banners: 'api/banners',
+    carousel: 'api/slides/',
+    banners: 'api/banners/',
     reviews: 'api/reviews',
     discount: 'api/discount',
-    products: 'api/products',
+    products: 'api/products/',
     promocode: 'api/promocode',
     promocodes: 'api/promocodes',
-    categories: 'api/categories'
+    categories: 'api/categories/'
   },
   post: {
     order: 'api/order/create/',
@@ -26,4 +26,7 @@ export const ENDPOINTS = {
     ifEmailExists: 'api/auth/email/exists',
     emailConfirm: 'api/auth/email/confirm',
   },
+  token: {
+    refresh: 'api/token/refresh/'
+  }
 };

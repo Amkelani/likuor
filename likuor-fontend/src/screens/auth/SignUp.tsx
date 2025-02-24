@@ -19,7 +19,19 @@ const SignUp: React.FC = (): JSX.Element => {
     const [password, setPassword] = useState<string>('');
     const [confirmPassword, setConfirmPassword] = useState<string>('');
     const [consent, setConsent] = useState<boolean>(false);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [secureTextEntry, setSecureTextEntry] = useState<boolean>(true);
+    const [secureConfirmTextEntry, setSecureConfirmTextEntry] = useState<boolean>(true);
+    const [eyeOffIcon, setEyeOffIcon] = useState<boolean>(true);
+    const [eyeOffIconConfirm, setEyeOffIconConfirm] = useState<boolean>(true);
+    const toggleSecureTextEntry = () => {
+        setSecureTextEntry(!secureTextEntry);
+        setEyeOffIcon(!eyeOffIcon);
+    };
+    const toggleConfirmSecureTextEntry = () => {
+        setSecureConfirmTextEntry(!secureConfirmTextEntry);
+        setEyeOffIconConfirm(!eyeOffIconConfirm);
+    };
     const inp1Ref = useRef<TextInput>({
         focus: () => {
         }
@@ -81,23 +93,24 @@ const SignUp: React.FC = (): JSX.Element => {
                 <components.InputField
                     type='password'
                     value={password}
-                    eyeOffIcon={true}
-                    innerRef={inp3Ref}
-                    placeholder='please enter password'
-                    secureTextEntry={true}
-                    containerStyle={{marginBottom: 14}}
+                    eyeOffIcon={eyeOffIcon}
+                    secureTextEntry={secureTextEntry}
+                    toggleSecureTextEntry={toggleSecureTextEntry}
+                    placeholder='Please enter your password'
                     onChangeText={(text) => setPassword(text)}
+                    containerStyle={{marginBottom: 20}}
                 />
                 <components.InputField
                     type='password'
-                    eyeOffIcon={true}
-                    innerRef={inp4Ref}
                     value={confirmPassword}
+                    eyeOffIcon={eyeOffIconConfirm}
+                    secureTextEntry={secureConfirmTextEntry}
+                    toggleSecureTextEntry={toggleConfirmSecureTextEntry}
                     placeholder='please verify password'
-                    secureTextEntry={true}
-                    containerStyle={{marginBottom: 14}}
                     onChangeText={(text) => setConfirmPassword(text)}
+                    containerStyle={{marginBottom: 20}}
                 />
+
             </React.Fragment>
         );
     };
@@ -152,10 +165,9 @@ const SignUp: React.FC = (): JSX.Element => {
     const renderButton = () => {
         return (
             <View>
-
-
             <components.Button
                 title='Sign up'
+                loading={loading}
                 containerStyle={{marginBottom: 20}}
                 onPress={async () => {
                     if (!email || !phoneNumber || !password) {
@@ -184,11 +196,6 @@ const SignUp: React.FC = (): JSX.Element => {
                                         email: email,
                                         password: password,
                                         phone_number: phoneNumber
-                                    },
-                                    {
-                                        validateStatus: function (status) {
-                                            return status >= 200 && status < 500;
-                                        }
                                     });
                                 if (response.data.success) {
                                     UserStore.setEmail(email)
@@ -207,7 +214,6 @@ const SignUp: React.FC = (): JSX.Element => {
                     }
                 }}
             />
-                {loading && <ActivityIndicator size="large" color="#0000ff"/>}
             </View>
         );
     };

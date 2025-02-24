@@ -21,6 +21,7 @@ import {setScreen} from '../store/slices/tabSlice';
 import BurgerProfileItem from './BurgerProfileItem';
 import {statusBarHeight, homeIndicatorHeight} from '../utils';
 import {useAppNavigation, useAppSelector, useAppDispatch} from '../hooks';
+import {clearTokens} from "../config";
 
 type Props = PropsWithChildren<{
     skip?: boolean;
@@ -207,18 +208,12 @@ const Header: React.FC<Props> = ({
                     }}
                     disabled={notification}
                 />
-                {/*<BurgerProfileItem*/}
-                {/*  text={'Face ID'}*/}
-                {/*  onPress={() => {*/}
-                {/*    setFaceID(!faceID);*/}
-                {/*  }}*/}
-                {/*  disabled={faceID}*/}
-                {/*/>*/}
                 <BurgerProfileItem text={'Support center'} onPress={() => {
                 }}/>
                 <BurgerProfileItem
                     text={'Sign out'}
                     onPress={() => {
+                        clearTokens()
                         setShowModal(false);
                         navigation.navigate('SignIn');
                     }}

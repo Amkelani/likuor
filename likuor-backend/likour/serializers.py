@@ -12,7 +12,7 @@ class CategorySerializer(serializers.HyperlinkedModelSerializer):
 class CarouselSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.Carousel
-        fields = ['image']
+        fields = ['id', 'image']
 
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):

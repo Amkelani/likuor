@@ -6,9 +6,17 @@ import {theme} from '../constants';
 import {components} from '../components';
 import {useAppNavigation} from '../hooks';
 
-const TrackYourOrder: React.FC = (): JSX.Element => {
-  const navigation = useAppNavigation();
 
+// @ts-ignore
+const TrackYourOrder: React.FC = ({route}): JSX.Element => {
+  const navigation = useAppNavigation();
+  const {order_status, order_id, date, time} = route.params;
+  const orderStatuses = [
+    { title: 'Order Confirmed', description: 'Your order has been confirmed' },
+    { title: 'Preparing', description: 'Our bartender is preparing your drink' },
+    { title: 'Shipping', description: 'Driver is on the way' },
+    { title: 'Delivered', description: 'Knock Knock !!' },
+  ];
   const renderStatusBar = () => {
     return <components.StatusBar />;
   };
@@ -16,7 +24,11 @@ const TrackYourOrder: React.FC = (): JSX.Element => {
   const renderHeader = () => {
     return <components.Header goBack={true} title='Track your order' />;
   };
-
+  const getStatus = (order_status, status) => {
+    const statusOrder = ['Order Confirmed', 'Preparing', 'Shipping', 'Delivered'];
+    return statusOrder.indexOf(order_status) <= statusOrder.indexOf(status);
+  };
+  console.log(order_status)
   const renderDescription = () => {
     return (
       <View
@@ -35,14 +47,14 @@ const TrackYourOrder: React.FC = (): JSX.Element => {
           <text.T14 style={{marginRight: 14, textTransform: 'none'}}>
             Your order:
           </text.T14>
-          <text.H5 style={{color: theme.colors.mainTurquoise}}>1</text.H5>
+          <text.H5 style={{color: theme.colors.mainTurquoise}}>{order_id}</text.H5>
         </View>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <text.T14 style={{marginRight: 14, textTransform: 'none'}}>
             Date:
           </text.T14>
           <text.H5 style={{color: theme.colors.mainTurquoise}}>
-            Aug 31 at 8:32 pm
+            {date} at {time}
           </text.H5>
         </View>
       </View>
@@ -59,29 +71,15 @@ const TrackYourOrder: React.FC = (): JSX.Element => {
           padding: 30,
         }}
       >
-        <components.OrderStatus
-          title='Order confirmed'
-          description='Your order has been confirmed'
-          status={true}
-          containerStyle={{marginBottom: 7}}
-        />
-        <components.OrderStatus
-          title='Order is being packed'
-          description='Complete'
-          status={true}
-          containerStyle={{marginBottom: 7}}
-        />
-        <components.OrderStatus
-          title='Courier delivering'
-          description='Estimated for 9:12 pm'
-          status={true}
-          containerStyle={{marginBottom: 7}}
-        />
-        <components.OrderStatus
-          title='Delivered'
-          description='Estimated for 9:32 pm'
-          status={false}
-        />
+        {orderStatuses.map((orderStatus, index) => (
+            <components.OrderStatus
+                key={index}
+                title={orderStatus.title}
+                description={orderStatus.description}
+                status={getStatus(orderStatus.title, order_status)}
+                containerStyle={{ marginBottom: 7 }}
+            />
+        ))}
       </View>
     );
   };

@@ -105,7 +105,7 @@ const OrderHistory: React.FC = (): JSX.Element => {
         data: ordersData,
         error: ordersError,
         isLoading: ordersLoading,
-    } = useGetOrdersQuery({ "username": userStore.getEmail() });
+    } = useGetOrdersQuery({"username": userStore.getEmail()});
     // @ts-ignore
     const history = ordersData instanceof Array ? ordersData : [];
     const [activeSections, setActiveSections] = useState<number[]>([]);
@@ -115,11 +115,11 @@ const OrderHistory: React.FC = (): JSX.Element => {
     };
 
     const renderStatusBar = () => {
-        return <components.StatusBar />;
+        return <components.StatusBar/>;
     };
 
     const renderHeader = () => {
-        return <components.Header goBack={true} title='Order history' />;
+        return <components.Header goBack={true} title='Order history'/>;
     };
 
     const accordionHeader = (section: any) => {
@@ -203,12 +203,14 @@ const OrderHistory: React.FC = (): JSX.Element => {
                             borderRadius: 5,
                             backgroundColor:
                                 section.status === 'Shipping'
-                                    ? '#FFA462'
+                                    ? '#007BFF'
                                     : section.status === 'Delivered'
                                         ? theme.colors.mainTurquoise
                                         : section.status === 'Order Confirmed'
                                             ? '#008000'
-                                            : '#FA5555',
+                                            : section.status === 'Preparing'
+                                                ? '#FFA500'
+                                                : '#FA5555',
                         }}
                     >
                         <Text
@@ -290,7 +292,11 @@ const OrderHistory: React.FC = (): JSX.Element => {
                     <components.Button
                         title='track order'
                         onPress={() => {
-                            navigation.navigate('TrackYourOrder');
+                            // @ts-ignore
+                            navigation.navigate('TrackYourOrder', {'order_status': section.status,
+                                'order_id': section.order_id,
+                                'date': section.date,
+                                'time': section.time });
                         }}
                     />
                 )}
@@ -308,12 +314,6 @@ const OrderHistory: React.FC = (): JSX.Element => {
                                 width: '96%',
                             }}
                         />
-                        {/*<components.Button*/}
-                        {/*  title='Leave review'*/}
-                        {/*  containerStyle={{*/}
-                        {/*    width: '48%',*/}
-                        {/*  }}*/}
-                        {/*/>*/}
                     </View>
                 )}
             </View>
@@ -342,7 +342,7 @@ const OrderHistory: React.FC = (): JSX.Element => {
 
     const renderEmptyHistory = () => {
         if (ordersLoading) {
-            return <components.Loader />;
+            return <components.Loader/>;
         }
         if (history.length === 0) {
             return (

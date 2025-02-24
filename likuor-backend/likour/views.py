@@ -1,7 +1,9 @@
 from django.contrib.auth.models import User
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from backend.config import aws_email_sender
 from backend.helper import *
 from . import models
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Count
 from rest_framework import permissions, viewsets
 from django.contrib.auth import authenticate
@@ -14,26 +16,46 @@ from django.shortcuts import render
 import pytz
 import random
 import string
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import AccessToken
 
 sa_timezone = pytz.timezone('Africa/Johannesburg')
 
+class TestTokenView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    def get(self, request):
+        auth_header = request.headers.get('Authorization', '')
+        if auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+            try:
+                validated_token = AccessToken(token)
+                return Response({"user_id": validated_token['user_id']})
+            except Exception as e:
+                return Response({"error": str(e)}, status=401)
+        return Response({"error": "No Bearer token"}, status=401)
 
 class ProductViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows Products to be viewed or edited.
-    """
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     queryset = models.Product.objects.all().order_by('name')
     serializer_class = ProductSerializer
-    permission_classes = [permissions.AllowAny]
+
+    def list(self, request, *args, **kwargs):
+        print("Request headers:", request.headers)
+        print("Authenticated user:", request.user)
+        return super().list(request, *args, **kwargs)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows Categories to be viewed or edited.
     """
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
     serializer_class = CategorySerializer
-    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         return models.Category.objects.annotate(product_count=Count('product')).filter(product_count__gt=0).order_by(
@@ -44,9 +66,11 @@ class CarouselViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows Carousels to be viewed or edited
     """
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
     queryset = models.Carousel.objects.all()
     serializer_class = CarouselSerializer
-    permission_classes = [permissions.AllowAny]
 
 
 class AuthViewSet(ViewSet):
@@ -62,8 +86,14 @@ class AuthViewSet(ViewSet):
         user = authenticate(username=username, password=password)
         if user is not None:
             if user.profile.email_confirmed:
-                return Response({'success': 'Authenticated Successfully.', 'user': username, 'address': user.profile.address},
-                                status=status.HTTP_200_OK)
+                refresh = RefreshToken.for_user(user)
+                return Response(
+                    {'success': 'Authenticated Successfully.',
+                     'user': username,
+                     'address': user.profile.address,
+                     'access': str(refresh.access_token),
+                     'refresh': str(refresh)},
+                    status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'User not verified'},
                                 status=status.HTTP_400_BAD_REQUEST)
@@ -115,7 +145,8 @@ class VerifyEmailViewSet(ViewSet):
     """
     API endpoint to verify email address
     """
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     @staticmethod
     def create(request):
@@ -147,7 +178,8 @@ class UserViewSet(ViewSet):
     """
     API endpoint to get user
     """
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
     @staticmethod
     def create(request):
@@ -165,7 +197,8 @@ class OrdersCreateViewSet(ViewSet):
     """
     API endpoint to add orders to database
     """
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
     @staticmethod
     def create(request):
@@ -205,13 +238,12 @@ class OrdersCreateViewSet(ViewSet):
                 return Response({'success': 'Successfully added order'}, status=status.HTTP_200_OK)
             except Exception as e:
                 print(e)
-
-
 class OrdersViewSet(ViewSet):
     """
     API endpoint to get orders
     """
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
     @staticmethod
     def create(request):
@@ -223,7 +255,7 @@ class OrdersViewSet(ViewSet):
         else:
             try:
                 orders_list = []
-                orders = models.Order.objects.filter(user=user)
+                orders = models.Order.objects.filter(user=user).order_by('-id')
                 for order in orders:
                     order_products = models.OrderProducts.objects.filter(order_id=order.id)
                     products = []
@@ -240,7 +272,7 @@ class OrdersViewSet(ViewSet):
                         "id": order.id,
                         "order_id": order.order_id,
                         "date": order.date.strftime("%b %d, %Y"),
-                        "time": order.time.strftime("%I:%M %p").lower(),
+                        "time": order.time.strftime("%H:%M %p").lower(),
                         "total": order.total,
                         "status": order.status,
                         "delivery": "30",
@@ -257,7 +289,9 @@ class UserUpdateViewSet(ViewSet):
     """
     API endpoint to get user
     """
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
 
     @staticmethod
     def create(request):

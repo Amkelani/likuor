@@ -1,15 +1,14 @@
 import React, {useState} from 'react';
-import {View, Text, ViewStyle, TextStyle, ActivityIndicator, TouchableOpacity, Image, Alert} from 'react-native';
+import {View, Text, ViewStyle, TextStyle, TouchableOpacity, Image, Alert} from 'react-native';
 import axios from 'axios';
 import {text} from '../../text';
-import {svg} from '../../assets/svg';
 import {theme} from '../../constants';
 import {components} from '../../components';
 import {useAppNavigation} from '../../hooks';
-import {homeIndicatorHeight} from '../../utils';
-import {BASE_URL, ENDPOINTS} from '../../config';
+import {BASE_URL, ENDPOINTS, storeTokens} from '../../config';
 import UserStore from './UserStore'
 import addressStore from "./AddressStore";
+
 
 const SignIn: React.FC = (): JSX.Element => {
     const navigation = useAppNavigation();
@@ -167,6 +166,7 @@ const SignIn: React.FC = (): JSX.Element => {
             <View>
                 <components.Button
                     title={'Sign in'}
+                    loading={loading}
                     containerStyle={{marginBottom: 20}}
                     onPress={async () => {
                         if (!email || !password) {
@@ -178,14 +178,11 @@ const SignIn: React.FC = (): JSX.Element => {
                                     const response = await axios.post(`${BASE_URL}${ENDPOINTS.auth.login}`, {
                                         username: email,
                                         password: password,
-                                    }, {
-                                        validateStatus: function (status) {
-                                            return status >= 200 && status < 500;
-                                        }
                                     });
                                     if (response.data.success) {
                                         UserStore.setEmail(response.data.user)
                                         addressStore.setAddress(response.data.address)
+                                        await storeTokens(response.data.access, response.data.refresh)
                                         setLoading(false);
                                         navigation.navigate('TabNavigator');
                                     } else {
@@ -200,7 +197,6 @@ const SignIn: React.FC = (): JSX.Element => {
                         }
                     }}
                 />
-                {loading && <ActivityIndicator size="large" color="#0000ff" aria-modal={true}/>}
             </View>
         );
     };
